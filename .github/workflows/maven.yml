@@ -27,7 +27,7 @@ jobs:
       env:
         FTP_SERVER: ftpupload.net
         FTP_USERNAME: epiz_25412810
-        FTP_PASSWORD: ${{geokei_ftp_add_data}}
+        FTP_PASSWORD: ${{secrets.geokei_ftp_add_data}}
         LOCAL_DIR: dist
         REMOTE_DIR: geokei.com/htdocs
       
