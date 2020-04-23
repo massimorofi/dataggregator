@@ -7,7 +7,7 @@ public class DataUpdater {
 
 	public static void main(String[] args) {
 		try {
-			String httpsURL = "https://news.yahoo.com/rss/mostviewed";
+			String httpsURL = "https://news.yahoo.com/rss/latest";
 			URL myUrl = new URL(httpsURL);
 			HttpsURLConnection conn = (HttpsURLConnection) myUrl.openConnection();
 			InputStream is = conn.getInputStream();
