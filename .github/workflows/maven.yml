@@ -18,6 +18,8 @@ jobs:
         java-version: 1.9
     - name: Build with Maven
       run: mvn install
+    - name: UploadWorldData
+      run: wget -O tmp/world.csv https://opendata.ecdc.europa.eu/covid19/casedistribution/csv
     - name: Run Data Aggregator
       run: java -jar target/DataUpdater_exec.jar
     - name: Show run results
