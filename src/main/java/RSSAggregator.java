@@ -23,7 +23,7 @@ public class RSSAggregator {
 			String inputLine;
 			BufferedWriter f = new BufferedWriter(new FileWriter("dist/data/RSS_News.xml"));
 			while ((inputLine = br.readLine()) != null) {
-				System.out.println(inputLine);
+				//System.out.println(inputLine);
 				f.write(inputLine);
 			}
 			br.close();

@@ -6,7 +6,9 @@ public class DataUpdater {
 		RSSAggregator.run();
 		System.out.println("Aggregating COVID CSV DATA ...");
 		COVID_Aggregate.run();
-        System.out.println("DATAUPDATER-->END.");
+		System.out.println("Web COVID Data Aggregation... stats per population");
+		HTMLRemoteLoader.run();
+		System.out.println("DATAUPDATER-->END.");
 	}
 
 }
