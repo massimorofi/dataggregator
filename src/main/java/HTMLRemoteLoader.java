@@ -32,6 +32,7 @@ public class HTMLRemoteLoader {
 	 */
 	public static void run() {
 		try {
+			// getHTMLData();
 			// Fetch Data from website
 			htmlToCsv();
 			// Aggregate data and save
@@ -48,15 +49,15 @@ public class HTMLRemoteLoader {
 		stm.executeUpdate("CREATE TABLE covid(\r\n" + "   ORD INTEGER\r\n" + "  ,Country           VARCHAR(30)\r\n"
 				+ "  ,Total_Cases       INTEGER \r\n" + "  ,New_Cases         INTEGER \r\n"
 				+ "  ,Total_Deaths      INTEGER \r\n" + "  ,New_Deaths        INTEGER \r\n"
-				+ "  ,Total_Recovered   INTEGER \r\n" + "  ,Active_Cases      INTEGER \r\n"
-				+ "  ,Serious_Critical  INTEGER \r\n" + "  ,Tot_Cases_1M_pop  VARCHAR(30) \r\n"
-				+ "  ,Deaths_1M_pop     VARCHAR(30) \r\n" + "  ,Total_Tests       INTEGER \r\n"
-				+ "  ,Tests_1M_pop      INTEGER \r\n" + "  ,Population          INTEGER\r\n"
-				+ "  ,Continent         VARCHAR(30) \r\n" + ");");
+				+ "  ,Total_Recovered   INTEGER \r\n" + "  ,New_Recovered      INTEGER \r\n"
+				+ "  ,Active_Cases      INTEGER \r\n" + "  ,Serious_Critical  INTEGER \r\n"
+				+ "  ,Tot_Cases_1M_pop  VARCHAR(30) \r\n" + "  ,Deaths_1M_pop     VARCHAR(30) \r\n"
+				+ "  ,Total_Tests       INTEGER \r\n" + "  ,Tests_1M_pop      INTEGER \r\n"
+				+ "  ,Population          INTEGER\r\n" + "  ,Continent         VARCHAR(30) \r\n" + ");");
 		stm.executeUpdate(
-				"INSERT INTO \"PUBLIC\".\"COVID\" (ORD,COUNTRY,TOTAL_CASES,NEW_CASES,TOTAL_DEATHS,NEW_DEATHS,TOTAL_RECOVERED,ACTIVE_CASES,SERIOUS_CRITICAL,TOT_CASES_1M_POP,DEATHS_1M_POP,TOTAL_TESTS,TESTS_1M_POP,POPULATION,CONTINENT) \r\n"
-						+ "SELECT ORD,COUNTRY,TOTAL_CASES,NEW_CASES,TOTAL_DEATHS,NEW_DEATHS,TOTAL_RECOVERED,ACTIVE_CASES,SERIOUS_CRITICAL,TOT_CASES_1M_POP,DEATHS_1M_POP,TOTAL_TESTS,TESTS_1M_POP,POPULATION,CONTINENT \r\n"
-						+ "FROM CSVREAD('tmp/covid_world_today.csv','ORD;COUNTRY;TOTAL_CASES;NEW_CASES;TOTAL_DEATHS;NEW_DEATHS;TOTAL_RECOVERED;ACTIVE_CASES;SERIOUS_CRITICAL;TOT_CASES_1M_POP;DEATHS_1M_POP;TOTAL_TESTS;TESTS_1M_POP;POPULATION;CONTINENT','fieldSeparator=;');");
+				"INSERT INTO \"PUBLIC\".\"COVID\" (ORD,COUNTRY,TOTAL_CASES,NEW_CASES,TOTAL_DEATHS,NEW_DEATHS,TOTAL_RECOVERED,NEW_RECOVERED,ACTIVE_CASES,SERIOUS_CRITICAL,TOT_CASES_1M_POP,DEATHS_1M_POP,TOTAL_TESTS,TESTS_1M_POP,POPULATION,CONTINENT) \r\n"
+						+ "SELECT ORD,COUNTRY,TOTAL_CASES,NEW_CASES,TOTAL_DEATHS,NEW_DEATHS,TOTAL_RECOVERED,NEW_RECOVERED,ACTIVE_CASES,SERIOUS_CRITICAL,TOT_CASES_1M_POP,DEATHS_1M_POP,TOTAL_TESTS,TESTS_1M_POP,POPULATION,CONTINENT \r\n"
+						+ "FROM CSVREAD('tmp/covid_world_today.csv','ORD;COUNTRY;TOTAL_CASES;NEW_CASES;TOTAL_DEATHS;NEW_DEATHS;TOTAL_RECOVERED;NEW_RECOVERED;ACTIVE_CASES;SERIOUS_CRITICAL;TOT_CASES_1M_POP;DEATHS_1M_POP;TOTAL_TESTS;TESTS_1M_POP;POPULATION;CONTINENT','fieldSeparator=;');");
 		// AGGREGATE DATA
 		ResultSet rs = stm.executeQuery("SELECT *, CURRENT_DATE() AS DATE FROM COVID \r\n"
 				+ "WHERE COUNTRY IN ('Italy','Germany','Spain','France', 'UK','USA','Russia','Sweden','Japan','Brazil') \r\n"
@@ -76,33 +77,44 @@ public class HTMLRemoteLoader {
 			Elements rows = table.select("tr");
 			Elements ths = doc.select("th");
 
-			/*
-			 * String thstr = ""; int eol = ths.size() - 1; System.out.println(eol); int
-			 * counter = 0; for (Element th : ths) { if (counter < eol) { thstr += th.text()
-			 * + ";"; } else { thstr += th.text() + "\n"; } counter++; } thstr =
-			 * thstr.trim().replaceAll(",", "_").replaceAll("/", "_").replaceAll("", "_") +
-			 * "\n";
-			 * 
-			 * f.write(thstr.getBytes());
-			 */
-			System.out.println("-->" + doc.select("tbody").size());
+			String thstr = "";
+			int eol = ths.size() - 1;
+			System.out.println("EOL=" + eol);
+			int counter = 0;
+			for (Element th : ths) {
+				if (counter < eol) {
+					thstr += th.text() + ";";
+				} else {
+					thstr += th.text() + "\n";
+				}
+				counter++;
+			}
+			thstr = thstr.trim().replaceAll(",", "_").replaceAll("/", "_").replaceAll("", "_").replaceAll("_", "").replaceAll(" ", "_")
+					+ "\n";
+
+			// f.write(thstr.getBytes());
+			System.out.println("thst" + thstr);
+			System.out.println("tbody=" + doc.select("tbody").size());
+			int rowCount = 0;
 			for (Element row : rows) {
 				Elements tds = row.select("td");
 				String line = "";
-				int eol = tds.size() - 1;
-				int counter = 0;
-				for (Element td : tds) {
-					if (counter < eol) {
-						line += td.text() + ";"; // --> This will print them individually
-					} else {
-						line += td.text() + "\n";
+				eol = 15;// my end of line
+				counter = 0;
+				if (tds.size() >= (eol)) {
+					for (int i = 0; i < eol; i++) {
+						line += tds.get(i).text() + ";"; // --> This will print them individually
 					}
-					counter++;
+					line += tds.get(eol).text() + "\n";
+					line = line.replaceAll(",", "").replaceAll("N/A", "").replaceAll("\\+", "");
+					f.write(line.getBytes()); // --> This will print everything
+					// in the row
+				} else {
+					System.out.println("tds.size() < eol" + tds.size());
 				}
-				line = line.replaceAll(",", "").replaceAll("N/A", "").replaceAll("\\+", "");
-				f.write(line.getBytes()); // --> This will print everything
-				// in the row
+				rowCount++;
 			}
+			System.out.println("rowCount=" + rowCount);
 			f.close();
 			// System.out.println(table);
 		} catch (IOException e) {
